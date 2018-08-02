@@ -25,6 +25,17 @@ profileRouter.post('/api/profiles', bearerAuthMiddleware, (request, response, ne
   return undefined;
 });
 
+profileRouter.get('/api/profiles/me', bearerAuthMiddleware, (request, response, next) => {
+  if (!request.account) return next(new HttpErrors(400, 'GET PROFILE ROUTER-AUTH: invalid request'));
+
+  return Profile.findOne({ accountId: request.account._id })
+    .then((profile) => {
+      if (!profile) return next(new HttpErrors(404, 'not found'));
+      return response.json(profile);
+    })
+    .catch(next);
+});
+
 profileRouter.get('/api/profiles/:id?', bearerAuthMiddleware, (request, response, next) => {
   if (!request.account) return next(new HttpErrors(400, 'GET PROFILE ROUTER-AUTH: invalid request'));
   if (!request.params.id) {
@@ -45,23 +56,37 @@ profileRouter.get('/api/profiles/:id?', bearerAuthMiddleware, (request, response
   return undefined;
 });
 
+// profileRouter.put('/api/profiles/:id?', bearerAuthMiddleware, (request, response, next) => {
+//   if (!request.account) return next(new HttpErrors(400, 'GET PROFILE ROUTER-AUTH: invalid request'));
+//   if (!request.params.id) {
+//     Profile.find({})
+//       .then((profiles) => {
+//         return response.json(profiles);
+//       })
+//       .catch(next);
+//     return undefined;
+//   }
+//   Profile.findOneAndUpdate(request.params._id, request.body, { new: true })
+//     .then((updatedProfile) => {
+//       logger.log(logger.INFO, `PROFILE ROUTER PUT: found profile ${JSON.stringify(updatedProfile, null, 2)}`);
+//       return response.json(updatedProfile);
+//     })
+//     .catch(next);
+//   return undefined;
+// });
+
 profileRouter.put('/api/profiles/:id?', bearerAuthMiddleware, (request, response, next) => {
-  if (!request.account) return next(new HttpErrors(400, 'GET IT FIRST'));
+  if (!request.account) return next(new HttpErrors(400, 'GET PROFILE ROUTER-AUTH: invalid request'));
   if (!request.params.id) {
-    Profile.find({})
-      .then((profiles) => {
-        return response.json(profiles);
-      })
-      .catch(next);
-    return undefined;
+    return next(new HttpErrors(400, 'No id entered'));
   }
-  Profile.findOneAndUpdate(request.params._id, request.body, { new: true })
+  const options = { new: true, runValidators: true };
+  Profile.findByIdAndUpdate(request.params.id, request.body, options)
     .then((updatedProfile) => {
-      logger.log(logger.INFO, `PROFILE ROUTER PUT: found profile ${JSON.stringify(updatedProfile, null, 2)}`);
+      if (!updatedProfile) return next(new HttpErrors(404, 'profile not found'));
       return response.json(updatedProfile);
     })
     .catch(next);
-  return undefined;
 });
 
 profileRouter.delete('/api/profiles/:id?', bearerAuthMiddleware, (request, response, next) => {
