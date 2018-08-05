@@ -15,6 +15,7 @@ import messageRouter from '../router/message-router';
 import imageRouter from '../router/image-router';
 import profileRouter from '../router/prof-router';
 import reminderRouter from '../router/reminder-router';
+import googleOAuthRouter from '../router/google-oauth-router';
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -45,6 +46,7 @@ app.use(messageRouter);
 app.use(reminderRouter);
 app.use(imageRouter);
 app.use(profileRouter);
+app.use(googleOAuthRouter);
 
 // catch all
 app.all('*', (request, response) => {
