@@ -3,7 +3,7 @@ import superagent from 'superagent';
 import HttpErrors from 'http-errors';
 import crypto from 'crypto';
 import jwt from 'jsonwebtoken';
-// import { access } from 'fs';
+
 import Account from '../model/account';
 import logger from '../lib/logger';
 
@@ -15,18 +15,22 @@ const OPEN_ID_URL = 'https://www.googleapis.com/plus/v1/people/me/openIdConnect'
 const googleOAuthRouter = new Router();
 // clicking on the google button, it is going to ask for consent to use a google accnt to sign in; we are looking to get a code from google
 googleOAuthRouter.get('/api/oauth/google', (request, response, next) => {
+  console.log('MADE IT TO LINE 18');
   return Account.init()
     .then(() => {
       // I will already have a request.query.code attached to the request object from Google at this point
       if (!request.query.code) {
         logger.log(logger.ERROR, 'DID NOT GET CODE FROM GOOGLE');
         response.redirect(process.env.CLIENT_URL);
+        console.log('MADE IT TO LINE 25');
         return next(new HttpErrors(500, 'Google OAuth Error'));
       }
+      console.log('MADE IT TO LINE 27');
       logger.log(logger.INFO, `RECEIVED A CODE FROM GOOGLE, SENDING IT BACK: ${request.query.code}`);
 
       // Once we have the Google code, we send it back to Google' server that deals with making tokens
       let accessToken;
+      console.log('MADE IT TO LINE 32');
       return superagent.post(GOOGLE_OAUTH_URL)
         .type('form')
         .send({
@@ -37,11 +41,13 @@ googleOAuthRouter.get('/api/oauth/google', (request, response, next) => {
           redirect_uri: `${process.env.API_URL}/oauth/google`,
         })
       // if we successfully send object above with the properties needed, we will get a token from google
+      
         .then((googleTokenResponse) => {
           if (!googleTokenResponse.body.access_token) {
             logger.log(logger.ERROR, 'No Token from Google');
             return response.redirect(process.env.CLIENT_URL);
           }
+          console.log('MADE IT TO LINE 49');
           logger.log(logger.INFO, `RECEIVED GOOGLE ACCESS TOKEN: ${JSON.stringify(googleTokenResponse.body, null, 2)}`);
           accessToken = googleTokenResponse.body.access_token;
           // now that we have google toke, we make another get request (with differnet URL)
@@ -50,11 +56,13 @@ googleOAuthRouter.get('/api/oauth/google', (request, response, next) => {
             .set('Authorization', `Bearer ${accessToken}`);
         })
       // if we get to this point, google will send back account info of the user (openIDResponse )
+        
         .then((openIDResponse) => {
           logger.log(logger.INFO, `OPEN ID: ${JSON.stringify(openIDResponse.body, null, 2)}`);
           // take email from account info
           const { email } = openIDResponse.body;
           // check to see if that account exists in database
+          console.log('MADE IT TO LINE 64');
           return Account.findOne({ email })
             .then((foundAccount) => {
               // if I don't have an account, we will create a new one in the db
@@ -62,12 +70,13 @@ googleOAuthRouter.get('/api/oauth/google', (request, response, next) => {
                 const username = email; 
                 // crypto creates fake password for account
                 const secret = `${crypto.randomBytes(25)}${process.env.SECRET_KEY}`;
-
+                console.log('MADE IT TO LINE 72');
                 return Account.create(username, email, secret)
                   .then((account) => {
                     console.log(account); 
                     // assign the google token we just got to the tokenseed of our account and save it
                     account.tokenSeed = accessToken;
+                    console.log('MADE IT TO LINE 78');
                     return account.save();
                   })
                   .then((updatedAccount) => {
@@ -81,13 +90,15 @@ googleOAuthRouter.get('/api/oauth/google', (request, response, next) => {
                     response.redirect(process.env.CLIENT_URL);
                   })
                   .catch(next);
-              } else { // eslint-disable-line
+                } else { // eslint-disable-line
+                console.log('MADE IT TO LINE 93'); 
                 return jwt.sign({ tokenSeed: foundAccount.tokenSeed }, process.env.SECRET_KEY);
               }
             })
             .then((token) => {
               const cookieOptions = { maxAge: 7 * 1000 * 60 * 60 * 24 };
               response.cookie('X-401d25-Token', token, cookieOptions);
+              console.log('MADE IT TO LINE 100');
               return response.redirect(process.env.CLIENT_URL); 
             })
             .catch(next);

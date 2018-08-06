@@ -27,7 +27,10 @@ const corsOptions = {
   // origin: process.env.CORS_ORIGINS,
   // "origin" defines what front end domains are permitted to access our API, we need to implement this to prevent any potential attacks
   origin: (origin, cb) => {
-    if (origin.includes(process.env.CORS_ORIGINS)) {
+    if (!origin) {
+      // assume Google API or Cypress
+      cb(null, true);
+    } else if (origin.includes(process.env.CORS_ORIGINS)) {
       cb(null, true);
     } else {
       throw new Error(`${origin} not allowed by CORS`);
@@ -49,11 +52,11 @@ app.use(profileRouter);
 app.use(googleOAuthRouter);
 
 // catch all
+app.use(errorMiddleWare);
 app.all('*', (request, response) => {
   return response.sendStatus(404).send('Route Not Registered');
 });
 
-app.use(errorMiddleWare);
 const startServer = () => {
   return mongoose.connect(process.env.MONGODB_URI)
     .then(() => {

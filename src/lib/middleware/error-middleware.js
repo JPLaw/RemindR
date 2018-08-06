@@ -3,7 +3,8 @@
 import logger from '../logger';
 
 export default (error, request, response, next) => { /*eslint-disable-line*/
-  logger.log(logger.ERROR, `ERROR MIDDLEWARE: ${JSON.stringify(error)}`);
+  logger.log(logger.ERROR, `ERROR MIDDLEWARE: ${JSON.stringify(error, null, 2)}`);
+  console.log(error, 'error');
   // I might have a status property
   if (error.status) {
     logger.log(logger.ERROR, `Responding with a ${error.status} code and message ${error.message}`);
@@ -34,6 +35,7 @@ export default (error, request, response, next) => { /*eslint-disable-line*/
     return response.sendStatus(401);
   }
 
-  logger.log(logger.ERROR, `Responding with a 500 code ${JSON.stringify(error)}`);
+  logger.log(logger.ERROR, `ERROR MIDDLEWARE: ${JSON.stringify(error, null, 2)}`);
+  console.log('WE HIT HERE');
   return response.sendStatus(500);
 };
