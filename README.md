@@ -1,5 +1,3 @@
-## Travis Badge
-[![Build Status](https://travis-ci.org/kgamer007/RemindR.svg?branch=master)](https://travis-ci.org/kgamer007/RemindR)
 
 # RemindR App: Never go a day without a reminder 
 # Contents
