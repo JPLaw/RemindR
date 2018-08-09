@@ -80,5 +80,3 @@ DELETE: http://localhost:3000/api/reminder/:id This will delete a particuluar re
 - [Multer](https://github.com/expressjs/multer) - Is essentially used as a body-parser. 
 - [jsonwebtoken](https://github.com/auth0/node-jsonwebtoken#readme) - We wanted our users to be granted tokens to access their own accounts/profiles.
 
-## ERD
-![alt text](https://github.com/kgamer007/RemindR/blob/master/ERDASSET/RemindR%20ERD.jpg)
